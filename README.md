@@ -1,5 +1,9 @@
 # Keycloak
 
+**THIS IS A FORK VERSION OF THE ORIGINAL KEYCLOAK GEM FROM [IMAGOV/KEYCLOAK](https://github.com/imagov/keycloak)**
+
+---
+
 * [pt-BR translation](https://github.com/imagov/keycloak/blob/master/README.pt-BR.md)
 
 Keycloak gem was developed to integrate applications and services into [Red Hat](https://www.redhat.com)'s [Keycloak](http://www.keycloak.org/) system for user control, authentication, authorization, and session management.
