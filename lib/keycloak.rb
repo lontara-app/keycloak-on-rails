@@ -19,7 +19,7 @@ module Keycloak
     attr_accessor :proxy, :generate_request_exception, :keycloak_controller,
                   :proc_cookie_token, :proc_external_attributes,
                   :realm, :auth_server_url, :validate_token_when_call_has_role,
-                  :secret, :resource
+                  :secret, :resource, :public_key
   end
 
   def self.explode_exception
@@ -327,12 +327,12 @@ module Keycloak
 
     def self.decoded_access_token(access_token = '')
       access_token = token['access_token'] if access_token.empty?
-      JWT.decode access_token, @public_key, false, { algorithm: 'RS256' }
+      JWT.decode access_token, @public_key, true, { algorithm: 'RS256' }
     end
 
     def self.decoded_refresh_token(refresh_token = '')
       refresh_token = token['access_token'] if refresh_token.empty?
-      JWT.decode refresh_token, @public_key, false, { algorithm: 'RS256' }
+      JWT.decode refresh_token, @public_key, true, { algorithm: 'RS256' }
     end
 
     KEYCLOACK_CONTROLLER_DEFAULT = 'session'
@@ -354,6 +354,7 @@ module Keycloak
         @auth_server_url = Keycloak.auth_server_url
         @client_id = Keycloak.resource
         @secret = Keycloak.secret
+        @public_key = Keycloak.public_key
       end
       openid_configuration
     end
@@ -415,7 +416,7 @@ module Keycloak
     def self.decoded_id_token(id_token = '')
       tk = token
       id_token = tk['id_token'] if id_token.empty?
-      @decoded_id_token = JWT.decode id_token, @public_key, false, { algorithm: 'RS256' } if id_token
+      @decoded_id_token = JWT.decode id_token, @public_key, true, { algorithm: 'RS256' } if id_token
     end
   end
 
