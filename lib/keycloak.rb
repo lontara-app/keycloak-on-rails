@@ -196,6 +196,8 @@ module Keycloak
     end
 
     def self.logout(redirect_uri = '', refresh_token = '', client_id = '', secret = '', end_session_endpoint = '')
+      raise 'Method not allowed for Public Access Type.' if Keycloak.access_type == 'public'
+
       verify_setup
 
       if token || !refresh_token.empty?
