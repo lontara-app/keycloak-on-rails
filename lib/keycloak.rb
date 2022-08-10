@@ -196,7 +196,7 @@ module Keycloak
     end
 
     def self.logout(redirect_uri = '', refresh_token = '', client_id = '', secret = '', end_session_endpoint = '')
-      raise 'Method not allowed for Public Access Type.' if Keycloak.access_type == 'public'
+      # raise 'Method not allowed for Public Access Type.' if Keycloak.access_type == 'public'
 
       verify_setup
 
@@ -204,11 +204,11 @@ module Keycloak
 
         refresh_token = token['refresh_token'] if refresh_token.empty?
         client_id = @client_id if isempty?(client_id)
-        secret = @secret if isempty?(secret)
+        # secret = @secret if isempty?(secret)
         end_session_endpoint = @configuration['end_session_endpoint'] if isempty?(end_session_endpoint)
 
         payload = { 'client_id' => client_id,
-                    'client_secret' => secret,
+                    #'client_secret' => secret,
                     'refresh_token' => refresh_token }
 
         header = { 'Content-Type' => 'application/x-www-form-urlencoded' }
