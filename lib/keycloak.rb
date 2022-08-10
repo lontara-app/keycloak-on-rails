@@ -19,7 +19,7 @@ module Keycloak
     attr_accessor :proxy, :generate_request_exception, :keycloak_controller,
                   :proc_cookie_token, :proc_external_attributes,
                   :realm, :auth_server_url, :validate_token_when_call_has_role,
-                  :secret, :resource, :public_key
+                  :secret, :resource, :public_key, :access_type
   end
 
   def self.explode_exception
@@ -44,7 +44,7 @@ module Keycloak
   module Client
     class << self
       attr_accessor :realm, :auth_server_url
-      attr_reader :client_id, :secret, :configuration, :public_key
+      attr_reader :client_id, :secret, :configuration, :public_key, :access_type
     end
 
     def self.get_token(user, password, client_id = '', secret = '')
@@ -154,6 +154,8 @@ module Keycloak
     end
 
     def self.get_token_introspection(token = '', client_id = '', secret = '', introspection_endpoint = '')
+      raise and return 'Access Type not Allowed for public' if @configuration['access_type'] == 'public'
+      
       verify_setup
 
       client_id = @client_id if isempty?(client_id)
@@ -283,6 +285,8 @@ module Keycloak
     end
 
     def self.user_signed_in?(access_token = '', client_id = '', secret = '', introspection_endpoint = '')
+      raise and return 'Access Type not Allowed for public' if @configuration['access_type'] == 'public'
+
       verify_setup
 
       client_id = @client_id if isempty?(client_id)
