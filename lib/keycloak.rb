@@ -154,7 +154,7 @@ module Keycloak
     end
 
     def self.get_token_introspection(token = '', client_id = '', secret = '', introspection_endpoint = '')
-      raise and return 'Access Type not Allowed for public' if @configuration['access_type'] == 'public'
+      raise and return 'Access Type not Allowed for public' if Keycloak.access_type == 'public'
       
       verify_setup
 
@@ -285,7 +285,7 @@ module Keycloak
     end
 
     def self.user_signed_in?(access_token = '', client_id = '', secret = '', introspection_endpoint = '')
-      raise and return 'Access Type not Allowed for public' if @configuration['access_type'] == 'public'
+      raise and return 'Access Type not Allowed for public' if Keycloak.access_type == 'public'
 
       verify_setup
 
