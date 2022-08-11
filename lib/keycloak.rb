@@ -155,7 +155,7 @@ module Keycloak
         raise Keycloak::MethodNotSupported.new('Method not allowed for Public Access Type',
                                                :not_supported)
       end
-      
+
       setup_module
 
       client_id = @client_id if isempty?(client_id)
@@ -298,16 +298,29 @@ module Keycloak
       secret = @secret if isempty?(secret)
       introspection_endpoint = @configuration['introspection_endpoint'] if isempty?(introspection_endpoint)
 
-      if !Keycloak.validate_token_when_call_has_role || user_signed_in?(access_token, client_id, secret,
-                                                                        introspection_endpoint)
-        dt = decoded_access_token(access_token)[0]
-        dt = dt['resource_access'][client_id]
-        unless dt.nil?
-          dt['roles'].each do |role|
-            return true if role.to_s == user_role.to_s
+      case Keycloak.access_type
+      when 'confidential'
+        if !Keycloak.validate_token_when_call_has_role || user_signed_in?(access_token, client_id, secret, introspection_endpoint)
+          dt = decoded_access_token(access_token)[0]
+          dt = dt['resource_access'][client_id]
+          unless dt.nil?
+            dt['roles'].each do |role|
+              return true if role.to_s == user_role.to_s
+            end
+          end
+        end
+      when 'public'
+        if !Keycloak.validate_token_when_call_has_role
+          dt = decoded_access_token(access_token)[0]
+          dt = dt['resource_access'][client_id]
+          unless dt.nil?
+            dt['roles'].each do |role|
+              return true if role.to_s == user_role.to_s
+            end
           end
         end
       end
+
       false
     end
 
