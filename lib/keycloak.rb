@@ -6,7 +6,6 @@ require 'json'
 require 'jwt'
 require 'base64'
 require 'uri'
-require 'rails'
 
 def isempty?(value)
   value.respond_to?(:empty?) ? !!value.empty? : !value
@@ -68,13 +67,27 @@ module Keycloak
       client_id = @client_id if isempty?(client_id)
       secret = @secret if isempty?(secret)
 
-      payload = { 'client_id' => client_id,
-                  'client_secret' => secret,
-                  'code' => code,
-                  'grant_type' => 'authorization_code',
-                  'redirect_uri' => redirect_uri,
-                  'client_session_state' => client_session_state,
-                  'client_session_host' => client_session_host }
+      case Keycloak.access_type
+      when 'public'
+        payload = {
+          'client_id' => client_id,
+          'code' => code,
+          'grant_type' => 'authorization_code',
+          'redirect_uri' => redirect_uri,
+          'client_session_state' => client_session_state,
+          'client_session_host' => client_session_host
+        }
+      when 'confidential'
+        payload = {
+          'client_id' => client_id,
+          'client_secret' => secret,
+          'code' => code,
+          'grant_type' => 'authorization_code',
+          'redirect_uri' => redirect_uri,
+          'client_session_state' => client_session_state,
+          'client_session_host' => client_session_host
+        }
+      end
 
       mount_request_token(payload)
     end
@@ -133,16 +146,17 @@ module Keycloak
       secret = @secret if isempty?(secret)
       refresh_token = token['refresh_token'] if refresh_token.empty?
 
-      if Keycloak.access_type == 'confidential'
+      case Keycloak.access_type
+      when 'public'
         payload = {
           'client_id' => client_id,
-          'client_secret' => secret,
           'refresh_token' => refresh_token,
           'grant_type' => 'refresh_token'
         }
-      elsif Keycloak.access_type == 'public'
+      when 'confidential'
         payload = {
           'client_id' => client_id,
+          'client_secret' => secret,
           'refresh_token' => refresh_token,
           'grant_type' => 'refresh_token'
         }
@@ -224,15 +238,17 @@ module Keycloak
         secret = @secret if isempty?(secret)
         end_session_endpoint = @configuration['end_session_endpoint'] if isempty?(end_session_endpoint)
 
-        if Keycloak.access_type == 'confidential'
+        case Keycloak.access_type
+        when 'public'
+          payload = {
+            'client_id' => client_id,
+            'refresh_token' => refresh_token
+          }
+
+        when 'confidential'
           payload = {
             'client_id' => client_id,
             'client_secret' => secret,
-            'refresh_token' => refresh_token
-          }
-        elsif Keycloak.access_type == 'public'
-          payload = {
-            'client_id' => client_id,
             'refresh_token' => refresh_token
           }
         end
@@ -361,14 +377,14 @@ module Keycloak
     def self.decoded_access_token(access_token = '')
       return { message: 'User not logged in or Token not provided' } if token.blank? && access_token.blank?
 
-      access_token = token[0]['access_token'] if access_token.empty?
+      access_token = token[:'access_token'] if access_token.empty?
       JWT.decode access_token, @public_key, true, { algorithm: 'RS256' }
     end
 
     def self.decoded_refresh_token(refresh_token = '')
       return { message: 'User not logged in or Token not provided' } if token.blank? && refresh_token.blank?
 
-      refresh_token = token[0]['refresh_token'] if refresh_token.empty?
+      refresh_token = token[:'refresh_token'] if refresh_token.empty?
       JWT.decode refresh_token, @public_key, true, { algorithm: 'RS256' }
     end
 
