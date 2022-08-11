@@ -301,12 +301,14 @@ module Keycloak
 
       case Keycloak.access_type
       when 'confidential'
+        # Logged in user always have token. So no need to check if token is any.
         if user_signed_in?(access_token, client_id, secret, introspection_endpoint)
           decoded_token = decoded_access_token(access_token)
           decoded_token.select { |t| t['resource_access'] }.first['resource_access']['account']['roles'].include?(user_role)
         end
       when 'public'
-        return { message: 'User not logged in or Token not provided' } if Keycloak.proc_cookie_token.nil?
+        # Must provided because there is no way to check if user logged in or not.
+        return decoded_access_token(:message) if decoded_access_token(:message).any?
 
         decoded_token = decoded_access_token(access_token)
         decoded_token.select { |t| t['resource_access'] }.first['resource_access']['account']['roles'].include?(user_role)
@@ -352,11 +354,15 @@ module Keycloak
     end
 
     def self.decoded_access_token(access_token = '')
+      return { message: 'User not logged in or Token not provided' } if Keycloak.proc_cookie_token.nil?
+
       access_token = token['access_token'] if access_token.empty?
       JWT.decode access_token, @public_key, true, { algorithm: 'RS256' }
     end
 
     def self.decoded_refresh_token(refresh_token = '')
+      return { message: 'User not logged in or Token not provided' } if Keycloak.proc_cookie_token.nil?
+
       refresh_token = token['access_token'] if refresh_token.empty?
       JWT.decode refresh_token, @public_key, true, { algorithm: 'RS256' }
     end
