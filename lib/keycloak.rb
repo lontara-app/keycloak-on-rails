@@ -157,7 +157,7 @@ module Keycloak
       secret = @secret if isempty?(secret)
 
       payload = { 'client_id' => client_id,
-                  'client_secret' => secret,
+                  # 'client_secret' => secret,
                   'grant_type' => 'client_credentials' }
 
       mount_request_token(payload)
