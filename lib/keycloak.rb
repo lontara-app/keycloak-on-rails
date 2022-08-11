@@ -18,8 +18,7 @@ module Keycloak
   class << self
     attr_accessor :proxy, :generate_request_exception, :keycloak_controller,
                   :proc_cookie_token, :proc_external_attributes,
-                  :realm, :auth_server_url, :validate_token_when_call_has_role,
-                  :secret, :resource, :public_key, :access_type
+                  :realm, :auth_server_url, :secret, :resource, :public_key, :access_type
   end
 
   def self.explode_exception
@@ -300,18 +299,14 @@ module Keycloak
 
       case Keycloak.access_type
       when 'confidential'
-        if !Keycloak.validate_token_when_call_has_role || user_signed_in?(access_token, client_id, secret, introspection_endpoint)
+        if user_signed_in?(access_token, client_id, secret, introspection_endpoint)
           decoded_token = decoded_access_token(access_token)
           decoded_token.select { |t| t['resource_access'] }.first['resource_access']['account']['roles'].include?(user_role)
         end
       when 'public'
-        if !Keycloak.validate_token_when_call_has_role
-          decoded_token = decoded_access_token(access_token)
-          decoded_token.select { |t| t['resource_access'] }.first['resource_access']['account']['roles'].include?(user_role)
-        end
+        decoded_token = decoded_access_token(access_token)
+        decoded_token.select { |t| t['resource_access'] }.first['resource_access']['account']['roles'].include?(user_role)
       end
-
-      false
     end
 
     def self.user_signed_in?(access_token = '', client_id = '', secret = '', introspection_endpoint = '')
@@ -344,22 +339,12 @@ module Keycloak
       raise Keycloak::ProcCookieTokenNotDefined if Keycloak.proc_cookie_token.nil?
 
       JSON Keycloak.proc_cookie_token.call
-      # if !Keycloak.proc_cookie_token.nil?
-      #   JSON Keycloak.proc_cookie_token.call
-      # else
-      #   raise Keycloak::ProcCookieTokenNotDefined
-      # end
     end
 
     def self.external_attributes
       raise Keycloak::ProcExternalAttributesNotDefined if Keycloak.proc_external_attributes.nil?
 
       Keycloak.proc_external_attributes.call
-      # if !Keycloak.proc_external_attributes.nil?
-      #   Keycloak.proc_external_attributes.call
-      # else
-      #   raise Keycloak::ProcExternalAttributesNotDefined
-      # end
     end
 
     def self.decoded_access_token(access_token = '')
@@ -403,7 +388,6 @@ module Keycloak
     def self.setup_module
       Keycloak.proxy ||= ''
       Keycloak.keycloak_controller ||= KEYCLOACK_CONTROLLER_DEFAULT
-      Keycloak.validate_token_when_call_has_role ||= false
       get_installation
     end
 
