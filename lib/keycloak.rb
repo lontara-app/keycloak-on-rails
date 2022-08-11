@@ -361,6 +361,7 @@ module Keycloak
     end
 
     def self.decoded_refresh_token(refresh_token = '')
+      puts Keycloak.proc_cookie_token.nil?
       return { message: 'User not logged in or Token not provided' } if Keycloak.proc_cookie_token.nil?
 
       refresh_token = token['access_token'] if refresh_token.empty?
