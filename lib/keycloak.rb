@@ -354,7 +354,7 @@ module Keycloak
     end
 
     def self.decoded_access_token(access_token = '')
-      puts Keycloak.proc_cookie_token.nil?
+      puts access_token
       return { message: 'User not logged in or Token not provided' } if access_token.nil?
 
       access_token = token['access_token'] if access_token.empty?
