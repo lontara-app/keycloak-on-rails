@@ -20,7 +20,8 @@ module Keycloak
   class << self
     attr_accessor :proxy, :generate_request_exception, :keycloak_controller,
                   :proc_cookie_token, :proc_external_attributes,
-                  :realm, :auth_server_url, :secret, :resource, :access_type
+                  :realm, :auth_server_url, :secret, :resource, :access_type,
+                  :oidc_configuration
   end
 
   def self.explode_exception
@@ -106,7 +107,7 @@ module Keycloak
     end
     response = Keycloak::Client.exec_request request
     if response.code == 200
-      @configuration = JSON response.body
+      Keycloak.oidc_configuration = JSON response.body
     else
       response.return!
     end
@@ -200,7 +201,7 @@ module Keycloak
 
       client_id = @client_id if empty?(client_id)
       secret = @secret if empty?(secret)
-      token_endpoint = @configuration['token_endpoint'] if empty?(token_endpoint)
+      token_endpoint = Keycloak.oidc_configuration['token_endpoint'] if empty?(token_endpoint)
 
       payload = { 'client_id' => client_id,
                   'client_secret' => secret,
@@ -231,7 +232,7 @@ module Keycloak
         return JSON.parse({ message: 'User not logged in or Token not provided' }.to_json)
       end
 
-      userinfo_endpoint = @configuration['userinfo_endpoint'] if empty?(userinfo_endpoint)
+      userinfo_endpoint = Keycloak.oidc_configuration['userinfo_endpoint'] if empty?(userinfo_endpoint)
 
       access_token = JSON.parse(token)['access_token'] if access_token.empty?
       payload = { 'access_token' => access_token }
@@ -298,7 +299,7 @@ module Keycloak
       client_id = @client_id if empty?(client_id)
       secret = @secret if empty?(secret)
       access_token = JSON.parse(token)['access_token'] if empty?(access_token)
-      introspection_endpoint = @configuration['introspection_endpoint'] if empty?(introspection_endpoint)
+      introspection_endpoint = Keycloak.oidc_configuration['introspection_endpoint'] if empty?(introspection_endpoint)
 
       payload = { 'token' => access_token }
 
@@ -326,7 +327,7 @@ module Keycloak
       verify_setup
 
       client_id = @client_id if empty?(client_id)
-      authorization_endpoint = @configuration['authorization_endpoint'] if empty?(authorization_endpoint)
+      authorization_endpoint = Keycloak.oidc_configuration['authorization_endpoint'] if empty?(authorization_endpoint)
 
       p = URI.encode_www_form(response_type: response_type, client_id: client_id, redirect_uri: redirect_uri)
       "#{authorization_endpoint}?#{p}"
@@ -340,7 +341,7 @@ module Keycloak
         refresh_token = JSON.parse(token)['refresh_token'] if refresh_token.empty?
         client_id = @client_id if empty?(client_id)
         secret = @secret if empty?(secret)
-        end_session_endpoint = @configuration['end_session_endpoint'] if empty?(end_session_endpoint)
+        end_session_endpoint = Keycloak.oidc_configuration['end_session_endpoint'] if empty?(end_session_endpoint)
 
         case Keycloak.access_type
         when 'public'
@@ -390,7 +391,7 @@ module Keycloak
       end
 
       access_token = JSON.parse(token)['access_token'] if access_token.empty?
-      userinfo_endpoint = @configuration['userinfo_endpoint'] if empty?(userinfo_endpoint)
+      userinfo_endpoint = Keycloak.oidc_configuration['userinfo_endpoint'] if empty?(userinfo_endpoint)
 
       payload = { 'access_token' => access_token }
 
@@ -427,7 +428,7 @@ module Keycloak
 
       client_id = @client_id if empty?(client_id)
       secret = @secret if empty?(secret)
-      introspection_endpoint = @configuration['introspection_endpoint'] if empty?(introspection_endpoint)
+      introspection_endpoint = Keycloak.oidc_configuration['introspection_endpoint'] if empty?(introspection_endpoint)
       access_token = JSON.parse(token)['access_token'] if access_token.empty?
 
       case Keycloak.access_type
@@ -454,7 +455,7 @@ module Keycloak
 
       client_id = @client_id if empty?(client_id)
       secret = @secret if empty?(secret)
-      introspection_endpoint = @configuration['introspection_endpoint'] if empty?(introspection_endpoint)
+      introspection_endpoint = Keycloak.oidc_configuration['introspection_endpoint'] if empty?(introspection_endpoint)
       access_token = JSON.parse(token)['access_token'] if access_token.empty?
 
       case Keycloak.access_type
@@ -555,7 +556,7 @@ module Keycloak
     end
 
     def self.verify_setup
-      get_installation if @configuration.nil?
+      get_installation if Keycloak.oidc_configuration.nil?
     end
 
     def self.setup_module
@@ -580,7 +581,7 @@ module Keycloak
       header = { 'Content-Type' => 'application/x-www-form-urlencoded' }
 
       request = lambda do
-        RestClient.post(@configuration['token_endpoint'], payload, header) do |response, _request, _result|
+        RestClient.post(Keycloak.oidc_configuration['token_endpoint'], payload, header) do |response, _request, _result|
           case response.code
           when 200
             response.body
