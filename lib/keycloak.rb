@@ -104,7 +104,7 @@ module Keycloak
     request = lambda do
       RestClient.get config_url
     end
-    response = exec_request request
+    response = Keycloak::Client.exec_request request
     if response.code == 200
       @configuration = JSON response.body
     else
@@ -221,7 +221,7 @@ module Keycloak
           response.body
         end
       end
-      exec_request request
+      Keycloak::Client.exec_request request
     end
 
     def self.get_userinfo_issuer(access_token = '', userinfo_endpoint = '')
@@ -242,7 +242,7 @@ module Keycloak
         end
       end
 
-      exec_request request
+      Keycloak::Client.exec_request request
     end
 
     def self.get_token_by_refresh_token(refresh_token = '', client_id = '', secret = '')
@@ -319,7 +319,7 @@ module Keycloak
         end
       end
 
-      exec_request request
+      Keycloak::Client.exec_request request
     end
 
     def self.url_login_redirect(redirect_uri, response_type = 'code', client_id = '', authorization_endpoint = '')
@@ -376,7 +376,7 @@ module Keycloak
           end
         end
 
-        exec_request request
+        Keycloak::Client.exec_request request
       else
         true
       end
@@ -409,7 +409,7 @@ module Keycloak
         end
       end
 
-      exec_request request
+      Keycloak::Client.exec_request request
     end
 
     def self.url_user_account
@@ -590,7 +590,7 @@ module Keycloak
         end
       end
 
-      exec_request request
+      Keycloak::Client.exec_request request
     end
 
     def self.decoded_id_token(id_token = '')
