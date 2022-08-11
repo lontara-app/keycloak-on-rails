@@ -276,7 +276,7 @@ module Keycloak
           when 200
             response.body
           else
-            response.return!
+            {}
           end
         end
       end
