@@ -403,12 +403,8 @@ module Keycloak
         return JSON.parse({ message: 'User not logged in or Token not provided' }.to_json)
       end
 
-      begin
-        access_token = JSON.parse(token)['access_token'] if access_token.empty?
-        JWT.decode access_token, Keycloak::Client.public_key, true, { algorithm: 'RS256' }
-      rescue JWT::ExpiredSignature => e
-        JSON.parse({ message: e, status: 401 }.to_json)
-      end
+      access_token = JSON.parse(token)['access_token'] if access_token.empty?
+      JWT.decode access_token, Keycloak::Client.public_key, true, { algorithm: 'RS256' }
     end
 
     def self.decoded_refresh_token(refresh_token = '')
@@ -430,7 +426,11 @@ module Keycloak
       access_token = JSON.parse(token)['access_token'] if access_token.empty?
       decoded_token = decoded_access_token(access_token)
 
-      decoded_token.select { |t| t['exp'] }.first['exp'] < Time.now.to_i
+      begin
+        decoded_token.select { |t| t['exp'] }.first['exp'] < Time.now.to_i
+      rescue JWT::ExpiredSignature
+        false
+      end
     end
 
     def self.get_installation
