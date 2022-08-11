@@ -109,7 +109,7 @@ module Keycloak
 
     def self.get_userinfo_issuer(access_token = '', userinfo_endpoint = '')
       verify_setup
-      return { message: 'User not logged in or Token not provided' } if access_token.blank?
+      return { message: 'User not logged in or Token not provided' } if token.blank? && access_token.blank?
 
       userinfo_endpoint = @configuration['userinfo_endpoint'] if isempty?(userinfo_endpoint)
 
@@ -263,7 +263,7 @@ module Keycloak
 
     def self.get_userinfo(access_token = '', userinfo_endpoint = '')
       verify_setup
-      return { message: 'User not logged in or Token not provided' } if access_token.blank?
+      return { message: 'User not logged in or Token not provided' } if token.blank? && access_token.blank?
 
       access_token = token['access_token'] if access_token.empty?
       userinfo_endpoint = @configuration['userinfo_endpoint'] if isempty?(userinfo_endpoint)
@@ -349,8 +349,8 @@ module Keycloak
     def self.token
       raise Keycloak::ProcCookieTokenNotDefined if Keycloak.proc_cookie_token.nil?
 
-      JSON Keycloak.proc_cookie_token.call
-      return { message: 'User not logged in or Token not provided' } if Keycloak.proc_cookie_token.blank?
+      token = Keycloak.proc_cookie_token.call
+      token.present? ? token : {}
     end
 
     def self.external_attributes
@@ -360,14 +360,14 @@ module Keycloak
     end
 
     def self.decoded_access_token(access_token = '')
-      return { message: 'User not logged in or Token not provided' } if access_token.blank?
+      return { message: 'User not logged in or Token not provided' } if token.blank? && access_token.blank?
 
       access_token = token['access_token'] if access_token.empty?
       JWT.decode access_token, @public_key, true, { algorithm: 'RS256' }
     end
 
     def self.decoded_refresh_token(refresh_token = '')
-      return { message: 'User not logged in or Token not provided' } if refresh_token.blank?
+      return { message: 'User not logged in or Token not provided' } if token.blank? && access_token.blank?
 
       refresh_token = token['access_token'] if refresh_token.empty?
       JWT.decode refresh_token, @public_key, true, { algorithm: 'RS256' }
