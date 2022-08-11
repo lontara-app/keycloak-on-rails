@@ -355,7 +355,7 @@ module Keycloak
 
       case Keycloak.access_type
       when 'public'
-        token_expired?(access_token)
+        !token_expired?(access_token)
       when 'confidential'
         begin
           JSON(get_token_introspection(access_token, client_id, secret, introspection_endpoint))['active'] == true
