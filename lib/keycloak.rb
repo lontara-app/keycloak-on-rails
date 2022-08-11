@@ -341,9 +341,9 @@ module Keycloak
     end
 
     def self.user_signed_in?(access_token = '', client_id = '', secret = '', introspection_endpoint = '')
-      if Keycloak.access_type == 'public'
-        raise Keycloak::MethodNotSupported.new('Method not allowed for Public Access Type', :not_supported)
-      end
+      # if Keycloak.access_type == 'public'
+      #   raise Keycloak::MethodNotSupported.new('Method not allowed for Public Access Type', :not_supported)
+      # end
 
       verify_setup
 
@@ -351,10 +351,16 @@ module Keycloak
       secret = @secret if isempty?(secret)
       introspection_endpoint = @configuration['introspection_endpoint'] if isempty?(introspection_endpoint)
 
-      begin
-        JSON(get_token_introspection(access_token, client_id, secret, introspection_endpoint))['active'] == true
-      rescue StandardError => e
-        e.class < Keycloak::KeycloakException ? raise(e) : false
+      case Keycloak.access_type
+      when 'public'
+        access_token = JSON.parse(token)['access_token'] if access_token.empty?
+        token_expired?(access_token) && token.present?
+      when 'confidential'
+        begin
+          JSON(get_token_introspection(access_token, client_id, secret, introspection_endpoint))['active'] == true
+        rescue StandardError => e
+          e.class < Keycloak::KeycloakException ? raise(e) : false
+        end
       end
     end
 
