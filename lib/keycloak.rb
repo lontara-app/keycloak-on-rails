@@ -40,6 +40,12 @@ module Keycloak
     @installation_file = file || KEYCLOAK_JSON_FILE
   end
 
+  def public_key
+    response = Keycloak.find_public_key(Keycloak.auth_server_url, Keycloak.realm)
+
+    OpenSSL::PKey::RSA.new("-----BEGIN PUBLIC KEY-----\n #{JSON.parse(response.body)['public_key']} \n-----END PUBLIC KEY-----\n")
+  end
+
   module Client
     class << self
       attr_accessor :realm, :auth_server_url
@@ -438,7 +444,7 @@ module Keycloak
         @auth_server_url = Keycloak.auth_server_url
         @client_id = Keycloak.resource
         @secret = Keycloak.secret
-        @public_key = Keycloak.public_key
+        @public_key = public_key
       end
       openid_configuration
     end
