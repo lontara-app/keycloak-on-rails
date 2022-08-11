@@ -109,6 +109,7 @@ module Keycloak
 
     def self.get_userinfo_issuer(access_token = '', userinfo_endpoint = '')
       verify_setup
+      return { message: 'User not logged in or Token not provided' } if access_token.blank?
 
       userinfo_endpoint = @configuration['userinfo_endpoint'] if isempty?(userinfo_endpoint)
 
@@ -262,6 +263,7 @@ module Keycloak
 
     def self.get_userinfo(access_token = '', userinfo_endpoint = '')
       verify_setup
+      return { message: 'User not logged in or Token not provided' } if access_token.blank?
 
       access_token = token['access_token'] if access_token.empty?
       userinfo_endpoint = @configuration['userinfo_endpoint'] if isempty?(userinfo_endpoint)
