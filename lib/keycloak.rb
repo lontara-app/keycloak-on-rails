@@ -20,6 +20,8 @@ def empty?(value)
 end
 
 module Keycloak
+  include Keycloak::Client
+  
   OLD_KEYCLOAK_JSON_FILE = 'keycloak.json'
   KEYCLOAK_JSON_FILE = 'config/keycloak.json'
 
