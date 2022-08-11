@@ -194,7 +194,7 @@ module Keycloak
 
       client_id = @client_id if isempty?(client_id)
       secret = @secret if isempty?(secret)
-      token = self.token['access_token'] if isempty?(token)
+      token = JSON.parse(token)['access_token'] if isempty?(token)
       introspection_endpoint = @configuration['introspection_endpoint'] if isempty?(introspection_endpoint)
 
       payload = { 'token' => token }
