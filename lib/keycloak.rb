@@ -349,7 +349,7 @@ module Keycloak
     def self.token
       raise Keycloak::ProcCookieTokenNotDefined if Keycloak.proc_cookie_token.nil?
 
-      Keycloak.proc_cookie_token.present? ? Keycloak.proc_cookie_token : {}
+      Keycloak.proc_cookie_token.call
     end
 
     def self.external_attributes
