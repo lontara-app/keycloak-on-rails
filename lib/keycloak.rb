@@ -7,7 +7,7 @@ require 'jwt'
 require 'base64'
 require 'uri'
 
-def isempty?(value)
+def empty?(value)
   value.respond_to?(:empty?) ? !!value.empty? : !value
 end
 
@@ -49,8 +49,8 @@ module Keycloak
     def self.get_token(user, password, client_id = '', secret = '')
       setup_module
 
-      client_id = @client_id if isempty?(client_id)
-      secret = @secret if isempty?(secret)
+      client_id = @client_id if empty?(client_id)
+      secret = @secret if empty?(secret)
 
       payload = { 'client_id' => client_id,
                   'client_secret' => secret,
@@ -64,8 +64,8 @@ module Keycloak
     def self.get_token_by_code(code, redirect_uri, client_id = '', secret = '', client_session_state = '', client_session_host = '')
       verify_setup
 
-      client_id = @client_id if isempty?(client_id)
-      secret = @secret if isempty?(secret)
+      client_id = @client_id if empty?(client_id)
+      secret = @secret if empty?(secret)
 
       case Keycloak.access_type
       when 'public'
@@ -95,9 +95,9 @@ module Keycloak
     def self.get_token_by_exchange(issuer, issuer_token, client_id = '', secret = '', token_endpoint = '')
       setup_module
 
-      client_id = @client_id if isempty?(client_id)
-      secret = @secret if isempty?(secret)
-      token_endpoint = @configuration['token_endpoint'] if isempty?(token_endpoint)
+      client_id = @client_id if empty?(client_id)
+      secret = @secret if empty?(secret)
+      token_endpoint = @configuration['token_endpoint'] if empty?(token_endpoint)
 
       payload = { 'client_id' => client_id,
                   'client_secret' => secret,
@@ -123,14 +123,14 @@ module Keycloak
 
     def self.get_userinfo_issuer(access_token = '', userinfo_endpoint = '')
       verify_setup
-      
+
       if token.blank? && access_token.blank?
         return JSON.parse({ message: 'User not logged in or Token not provided' }.to_json)
       end
 
-      userinfo_endpoint = @configuration['userinfo_endpoint'] if isempty?(userinfo_endpoint)
+      userinfo_endpoint = @configuration['userinfo_endpoint'] if empty?(userinfo_endpoint)
 
-      access_token = token['access_token'] if access_token.empty?
+      access_token = JSON.parse(token)['access_token'] if access_token.empty?
       payload = { 'access_token' => access_token }
       header = { 'Content-Type' => 'application/x-www-form-urlencoded' }
       request = lambda do
@@ -145,8 +145,8 @@ module Keycloak
     def self.get_token_by_refresh_token(refresh_token = '', client_id = '', secret = '')
       verify_setup
 
-      client_id = @client_id if isempty?(client_id)
-      secret = @secret if isempty?(secret)
+      client_id = @client_id if empty?(client_id)
+      secret = @secret if empty?(secret)
       refresh_token = JSON.parse(token)['refresh_token'] if refresh_token.empty?
 
       case Keycloak.access_type
@@ -175,8 +175,8 @@ module Keycloak
 
       setup_module
 
-      client_id = @client_id if isempty?(client_id)
-      secret = @secret if isempty?(secret)
+      client_id = @client_id if empty?(client_id)
+      secret = @secret if empty?(secret)
 
       payload = { 'client_id' => client_id,
                   'client_secret' => secret,
@@ -185,20 +185,19 @@ module Keycloak
       mount_request_token(payload)
     end
 
-    def self.get_token_introspection(token = '', client_id = '', secret = '', introspection_endpoint = '')
+    def self.get_token_introspection(access_token = '', client_id = '', secret = '', introspection_endpoint = '')
       if Keycloak.access_type == 'public'
         raise Keycloak::MethodNotSupported.new('Method not allowed for Public Access Type', :not_supported)
       end
 
       verify_setup
 
-      client_id = @client_id if isempty?(client_id)
-      secret = @secret if isempty?(secret)
-      puts JSON.parse(token)['access_token']
-      token = JSON.parse(token)['access_token'] if isempty?(token)
-      introspection_endpoint = @configuration['introspection_endpoint'] if isempty?(introspection_endpoint)
+      client_id = @client_id if empty?(client_id)
+      secret = @secret if empty?(secret)
+      access_token = JSON.parse(token)['access_token'] if empty?(access_token)
+      introspection_endpoint = @configuration['introspection_endpoint'] if empty?(introspection_endpoint)
 
-      payload = { 'token' => token }
+      payload = { 'token' => access_token }
 
       authorization = Base64.strict_encode64("#{client_id}:#{secret}")
       authorization = "Basic #{authorization}"
@@ -223,8 +222,8 @@ module Keycloak
     def self.url_login_redirect(redirect_uri, response_type = 'code', client_id = '', authorization_endpoint = '')
       verify_setup
 
-      client_id = @client_id if isempty?(client_id)
-      authorization_endpoint = @configuration['authorization_endpoint'] if isempty?(authorization_endpoint)
+      client_id = @client_id if empty?(client_id)
+      authorization_endpoint = @configuration['authorization_endpoint'] if empty?(authorization_endpoint)
 
       p = URI.encode_www_form(response_type: response_type, client_id: client_id, redirect_uri: redirect_uri)
       "#{authorization_endpoint}?#{p}"
@@ -236,9 +235,9 @@ module Keycloak
       if token || !refresh_token.empty?
 
         refresh_token = JSON.parse(token)['refresh_token'] if refresh_token.empty?
-        client_id = @client_id if isempty?(client_id)
-        secret = @secret if isempty?(secret)
-        end_session_endpoint = @configuration['end_session_endpoint'] if isempty?(end_session_endpoint)
+        client_id = @client_id if empty?(client_id)
+        secret = @secret if empty?(secret)
+        end_session_endpoint = @configuration['end_session_endpoint'] if empty?(end_session_endpoint)
 
         case Keycloak.access_type
         when 'public'
@@ -288,7 +287,7 @@ module Keycloak
       end
 
       access_token = JSON.parse(token)['access_token'] if access_token.empty?
-      userinfo_endpoint = @configuration['userinfo_endpoint'] if isempty?(userinfo_endpoint)
+      userinfo_endpoint = @configuration['userinfo_endpoint'] if empty?(userinfo_endpoint)
 
       payload = { 'access_token' => access_token }
 
@@ -323,9 +322,9 @@ module Keycloak
         return JSON.parse({ message: 'User not logged in or Token not provided' }.to_json)
       end
 
-      client_id = @client_id if isempty?(client_id)
-      secret = @secret if isempty?(secret)
-      introspection_endpoint = @configuration['introspection_endpoint'] if isempty?(introspection_endpoint)
+      client_id = @client_id if empty?(client_id)
+      secret = @secret if empty?(secret)
+      introspection_endpoint = @configuration['introspection_endpoint'] if empty?(introspection_endpoint)
       access_token = JSON.parse(token)['access_token'] if access_token.empty?
 
       case Keycloak.access_type
@@ -349,9 +348,9 @@ module Keycloak
 
       return false if token.blank?
 
-      client_id = @client_id if isempty?(client_id)
-      secret = @secret if isempty?(secret)
-      introspection_endpoint = @configuration['introspection_endpoint'] if isempty?(introspection_endpoint)
+      client_id = @client_id if empty?(client_id)
+      secret = @secret if empty?(secret)
+      introspection_endpoint = @configuration['introspection_endpoint'] if empty?(introspection_endpoint)
       access_token = JSON.parse(token)['access_token'] if access_token.empty?
 
       case Keycloak.access_type
@@ -431,7 +430,7 @@ module Keycloak
         @public_key = installation['realm-public-key']
         @auth_server_url = installation['auth-server-url']
       else
-        if isempty?(Keycloak.realm) || isempty?(Keycloak.auth_server_url)
+        if empty?(Keycloak.realm) || empty?(Keycloak.auth_server_url)
           raise "#{Keycloak.installation_file} and realm settings not found."
         end
 
@@ -467,7 +466,7 @@ module Keycloak
     end
 
     def self.openid_configuration
-      RestClient.proxy = Keycloak.proxy unless isempty?(Keycloak.proxy)
+      RestClient.proxy = Keycloak.proxy unless empty?(Keycloak.proxy)
       config_url = "#{@auth_server_url}/realms/#{@realm}/.well-known/openid-configuration"
       request = lambda do
         RestClient.get config_url
@@ -538,12 +537,12 @@ module Keycloak
     end
 
     def self.revoke_consent_user(id, client_id = nil, access_token = nil)
-      client_id = Keycloak::Client.client_id if isempty?(client_id)
+      client_id = Keycloak::Client.client_id if empty?(client_id)
       generic_delete("users/#{id}/consents/#{client_id}", nil, nil, access_token)
     end
 
     def self.update_account_email(id, actions, redirect_uri = '', client_id = nil, access_token = nil)
-      client_id = Keycloak::Client.client_id if isempty?(client_id)
+      client_id = Keycloak::Client.client_id if empty?(client_id)
       generic_put("users/#{id}/execute-actions-email", { redirect_uri: redirect_uri, client_id: client_id }, actions,
                   access_token)
     end
@@ -665,7 +664,7 @@ module Keycloak
     end
 
     def self.effective_access_token(access_token)
-      if isempty?(access_token)
+      if empty?(access_token)
         Keycloak::Client.token['access_token']
       else
         access_token
@@ -688,8 +687,8 @@ module Keycloak
     end
 
     def self.get_users(query_parameters = nil, client_id = '', secret = '')
-      client_id = Keycloak::Client.client_id if isempty?(client_id)
-      secret = Keycloak::Client.secret if isempty?(secret)
+      client_id = Keycloak::Client.client_id if empty?(client_id)
+      secret = Keycloak::Client.secret if empty?(secret)
 
       proc = lambda { |token|
         Keycloak::Admin.get_users(query_parameters, token['access_token'])
@@ -699,8 +698,8 @@ module Keycloak
     end
 
     def self.get_users_by_role_name(role_name, query_parameters = nil, client_id = '', secret = '')
-      client_id = Keycloak::Client.client_id if isempty?(client_id)
-      secret = Keycloak::Client.secret if isempty?(secret)
+      client_id = Keycloak::Client.client_id if empty?(client_id)
+      secret = Keycloak::Client.secret if empty?(secret)
 
       proc = lambda do |token|
         Keycloak::Admin.get_users_by_role_name(role_name, query_parameters, token['access_token'])
@@ -710,8 +709,8 @@ module Keycloak
     end
 
     def self.get_groups(query_parameters = nil, client_id = '', secret = '')
-      client_id = Keycloak::Client.client_id if isempty?(client_id)
-      secret = Keycloak::Client.secret if isempty?(secret)
+      client_id = Keycloak::Client.client_id if empty?(client_id)
+      secret = Keycloak::Client.secret if empty?(secret)
 
       proc = lambda { |token|
         Keycloak::Admin.get_groups(query_parameters, token['access_token'])
@@ -721,8 +720,8 @@ module Keycloak
     end
 
     def self.get_groups_by_role_name(role_name, query_parameters = nil, client_id = '', secret = '')
-      client_id = Keycloak::Client.client_id if isempty?(client_id)
-      secret = Keycloak::Client.secret if isempty?(secret)
+      client_id = Keycloak::Client.client_id if empty?(client_id)
+      secret = Keycloak::Client.secret if empty?(secret)
 
       proc = lambda do |token|
         Keycloak::Admin.get_groups_by_role_name(role_name, query_parameters, token['access_token'])
@@ -732,8 +731,8 @@ module Keycloak
     end
 
     def self.get_users_by_group(id, query_parameters = nil, client_id = '', secret = '')
-      client_id = Keycloak::Client.client_id if isempty?(client_id)
-      secret = Keycloak::Client.secret if isempty?(secret)
+      client_id = Keycloak::Client.client_id if empty?(client_id)
+      secret = Keycloak::Client.secret if empty?(secret)
 
       proc = lambda do |token|
         Keycloak::Admin.get_users_by_group(id, query_parameters, token['access_token'])
@@ -743,8 +742,8 @@ module Keycloak
     end
 
     def self.change_password(user_id, redirect_uri = '', client_id = '', secret = '')
-      client_id = Keycloak::Client.client_id if isempty?(client_id)
-      secret = Keycloak::Client.secret if isempty?(secret)
+      client_id = Keycloak::Client.client_id if empty?(client_id)
+      secret = Keycloak::Client.secret if empty?(secret)
 
       proc = lambda { |token|
         Keycloak.generic_request(token['access_token'],
@@ -758,16 +757,16 @@ module Keycloak
     end
 
     def self.forgot_password(user_login, redirect_uri = '', client_id = '', secret = '')
-      client_id = Keycloak::Client.client_id if isempty?(client_id)
-      secret = Keycloak::Client.secret if isempty?(secret)
+      client_id = Keycloak::Client.client_id if empty?(client_id)
+      secret = Keycloak::Client.secret if empty?(secret)
 
       user = get_user_info(user_login, true, client_id, secret)
       change_password(user['id'], redirect_uri, client_id, secret)
     end
 
     def self.get_logged_user_info(client_id = '', secret = '')
-      client_id = Keycloak::Client.client_id if isempty?(client_id)
-      secret = Keycloak::Client.secret if isempty?(secret)
+      client_id = Keycloak::Client.client_id if empty?(client_id)
+      secret = Keycloak::Client.secret if empty?(secret)
 
       proc = lambda { |token|
         userinfo = JSON Keycloak::Client.get_userinfo
@@ -780,8 +779,8 @@ module Keycloak
     end
 
     def self.get_user_info(user_login, whole_word = false, client_id = '', secret = '')
-      client_id = Keycloak::Client.client_id if isempty?(client_id)
-      secret = Keycloak::Client.secret if isempty?(secret)
+      client_id = Keycloak::Client.client_id if empty?(client_id)
+      secret = Keycloak::Client.secret if empty?(secret)
 
       proc = lambda { |token|
         search = if user_login.index('@').nil?
@@ -822,13 +821,13 @@ module Keycloak
     end
 
     def self.exists_name_or_email(value, user_id = '', client_id = '', secret = '')
-      client_id = Keycloak::Client.client_id if isempty?(client_id)
-      secret = Keycloak::Client.secret if isempty?(secret)
+      client_id = Keycloak::Client.client_id if empty?(client_id)
+      secret = Keycloak::Client.secret if empty?(secret)
 
       begin
         usuario = Keycloak::Internal.get_user_info(value, true, client_id, secret)
         if user_id.empty? || user_id != usuario['id']
-          !isempty?(usuario)
+          !empty?(usuario)
         else
           false
         end
@@ -838,15 +837,15 @@ module Keycloak
     end
 
     def self.logged_federation_user?(client_id = '', secret = '')
-      client_id = Keycloak::Client.client_id if isempty?(client_id)
-      secret = Keycloak::Client.secret if isempty?(secret)
+      client_id = Keycloak::Client.client_id if empty?(client_id)
+      secret = Keycloak::Client.secret if empty?(secret)
       info = get_logged_user_info(client_id, secret)
       info['federationLink'] != nil
     end
 
     def self.create_simple_user(username, password, email, first_name, last_name, realm_roles_names, client_roles_names, proc = nil, client_id = '', secret = '')
-      client_id = Keycloak::Client.client_id if isempty?(client_id)
-      secret = Keycloak::Client.secret if isempty?(secret)
+      client_id = Keycloak::Client.client_id if empty?(client_id)
+      secret = Keycloak::Client.secret if empty?(secret)
 
       begin
         username.downcase!
@@ -886,7 +885,7 @@ module Keycloak
             if client_roles_names.count.positive?
               roles = []
               client_roles_names.each do |r|
-                next if isempty?(r)
+                next if empty?(r)
 
                 role = JSON Keycloak.generic_request(token['access_token'],
                                                      Keycloak::Admin.full_url("clients/#{client[0]['id']}/roles/#{r}"),
@@ -904,7 +903,7 @@ module Keycloak
             if realm_roles_names.count.positive?
               roles = []
               realm_roles_names.each do |r|
-                next if isempty?(r)
+                next if empty?(r)
 
                 role = JSON Keycloak.generic_request(token['access_token'],
                                                      Keycloak::Admin.full_url("roles/#{r}"),
@@ -928,15 +927,15 @@ module Keycloak
     end
 
     def self.create_starter_user(username, password, email, client_roles_names, proc = nil, client_id = '', secret = '')
-      client_id = Keycloak::Client.client_id if isempty?(client_id)
-      secret = Keycloak::Client.secret if isempty?(secret)
+      client_id = Keycloak::Client.client_id if empty?(client_id)
+      secret = Keycloak::Client.secret if empty?(secret)
       Keycloak::Internal.create_simple_user(username, password, email, '', '', [], client_roles_names, proc, client_id,
                                             secret)
     end
 
     def self.get_client_roles(client_id = '', secret = '')
-      client_id = Keycloak::Client.client_id if isempty?(client_id)
-      secret = Keycloak::Client.secret if isempty?(secret)
+      client_id = Keycloak::Client.client_id if empty?(client_id)
+      secret = Keycloak::Client.secret if empty?(secret)
 
       proc = lambda { |token|
         client = JSON Keycloak::Admin.get_clients({ clientId: client_id }, token['access_token'])
@@ -950,8 +949,8 @@ module Keycloak
     end
 
     def self.get_client_user_roles(user_id, client_id = '', secret = '')
-      client_id = Keycloak::Client.client_id if isempty?(client_id)
-      secret = Keycloak::Client.secret if isempty?(secret)
+      client_id = Keycloak::Client.client_id if empty?(client_id)
+      secret = Keycloak::Client.secret if empty?(secret)
 
       proc = lambda { |token|
         client = JSON Keycloak::Admin.get_clients({ clientId: client_id }, token['access_token'])
@@ -962,8 +961,8 @@ module Keycloak
     end
 
     def self.has_role?(user_id, user_role, client_id = '', secret = '')
-      client_id = Keycloak::Client.client_id if isempty?(client_id)
-      secret = Keycloak::Client.secret if isempty?(secret)
+      client_id = Keycloak::Client.client_id if empty?(client_id)
+      secret = Keycloak::Client.secret if empty?(secret)
 
       roles = JSON get_client_user_roles(user_id, client_id, secret)
       unless roles.nil?
@@ -981,8 +980,8 @@ module Keycloak
 
       Keycloak::Client.get_installation
 
-      client_id = Keycloak::Client.client_id if isempty?(client_id)
-      secret = Keycloak::Client.secret if isempty?(secret)
+      client_id = Keycloak::Client.client_id if empty?(client_id)
+      secret = Keycloak::Client.secret if empty?(secret)
 
       case Keycloak.access_type
       when 'public'
