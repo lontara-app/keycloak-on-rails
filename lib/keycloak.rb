@@ -299,7 +299,7 @@ module Keycloak
           when 200
             response.body
           when 401
-            { message: 'User not logged in', status: 401 }
+            JSON.parse({ message: 'Unauthorized', status: 401 }.to_json)
           else
             response.return!
           end
@@ -332,15 +332,11 @@ module Keycloak
         # Logged in user always have token. So no need to check if token is any.
         if user_signed_in?(access_token, client_id, secret, introspection_endpoint)
           decoded_token = decoded_access_token(access_token)
-          decoded_token.select do |t|
-            t['resource_access']
-          end.first['resource_access']['account']['roles'].include?(user_role)
+          decoded_token.select { |t| t['resource_access'] }.first['resource_access']['account']['roles'].include?(user_role)
         end
       when 'public'
         decoded_token = decoded_access_token(access_token)
-        decoded_token.select do |t|
-          t['resource_access']
-        end.first['resource_access']['account']['roles'].include?(user_role)
+        decoded_token.select { |t| t['resource_access'] }.first['resource_access']['account']['roles'].include?(user_role)
       end
     end
 
@@ -364,7 +360,7 @@ module Keycloak
 
     def self.get_attribute(attribute_name, access_token = '')
       verify_setup
-      
+
       if token.blank? && access_token.blank?
         return JSON.parse({ message: 'User not logged in or Token not provided' }.to_json)
       end
@@ -406,6 +402,10 @@ module Keycloak
     end
 
     KEYCLOACK_CONTROLLER_DEFAULT = 'session'
+
+    def self.token_expired?
+      decoded_access_token.select { |t| t['exp'] }.first['exp'] < Time.now.to_i
+    end
 
     def self.get_installation
       if File.exist?(Keycloak.installation_file)
