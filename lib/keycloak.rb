@@ -294,7 +294,7 @@ module Keycloak
     end
 
     def self.user_signed_in?(access_token = '', client_id = '', secret = '', introspection_endpoint = '')
-      raise 'Access Type not Allowed for public' if Keycloak.access_type == 'public' && return
+      raise MethodNotSupported::KeycloakException => 'Method not supported on Public Access Type' if Keycloak.access_type == 'public'
 
       verify_setup
 
@@ -899,10 +899,8 @@ module Keycloak
         roles.each do |role|
           return true if role['name'].to_s == user_role.to_s
         end
-        #   false
-        # else
-        #   false
       end
+
       false
     end
 
