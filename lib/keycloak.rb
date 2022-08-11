@@ -362,7 +362,7 @@ module Keycloak
       return { message: 'User not logged in or Token not provided' } if token.blank? && access_token.blank?
 
       access_token = token['access_token'] if access_token.empty?
-      puts token
+      print token
       JWT.decode access_token, @public_key, true, { algorithm: 'RS256' }
     end
 
