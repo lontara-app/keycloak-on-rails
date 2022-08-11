@@ -346,17 +346,16 @@ module Keycloak
       # end
       verify_setup
 
-      return false if token.blank? && access_token.blank?
+      return false if token.blank?
 
       client_id = @client_id if isempty?(client_id)
       secret = @secret if isempty?(secret)
       introspection_endpoint = @configuration['introspection_endpoint'] if isempty?(introspection_endpoint)
+      access_token = JSON.parse(token)['access_token'] if access_token.empty?
 
       case Keycloak.access_type
       when 'public'
-        access_token = JSON.parse(token)['access_token'] if access_token.empty?
         token_expired?(access_token)
-
       when 'confidential'
         begin
           JSON(get_token_introspection(access_token, client_id, secret, introspection_endpoint))['active'] == true
