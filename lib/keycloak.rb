@@ -337,8 +337,11 @@ module Keycloak
     def self.get_attribute(attribute_name, access_token = '')
       verify_setup
 
-      attr = decoded_access_token(access_token)[0]
-      attr[attribute_name]
+      # Must provided because there is no way to check if user logged in or not.
+      decoded_token = decoded_access_token(access_token)
+      return { message: decoded_token[:message], status: 403 } if decoded_token[:message].present?
+
+      { attribute_name => decoded_token.select { |t| t[attribute_name] }.first[attribute_name] }
     end
 
     def self.token
