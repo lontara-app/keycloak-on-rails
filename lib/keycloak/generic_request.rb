@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
-require 'client'
-require 'rescue_response'
+require_relative 'client'
+require_relative 'rescue_response'
 
 module Keycloak
   def self.generic_request(access_token, uri, query_parameters, body_parameter, method)

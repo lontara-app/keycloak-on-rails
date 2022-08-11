@@ -1,9 +1,9 @@
 # frozen_string_literal: true
 
-require 'admin'
-require 'client'
-require 'exceptions'
-require 'generic_request'
+require_relative 'admin'
+require_relative 'client'
+require_relative 'exceptions'
+require_relative 'generic_request'
 
 module Keycloak
   module Internal

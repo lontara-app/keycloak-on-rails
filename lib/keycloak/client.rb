@@ -1,8 +1,8 @@
 # frozen_string_literal: true
 
-require 'public_key'
-require 'oidc_configuration'
-require 'exceptions'
+require_relative 'public_key'
+require_relative 'oidc_configuration'
+require_relative 'exceptions'
 
 module Keycloak
   module Client
