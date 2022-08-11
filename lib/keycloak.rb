@@ -6,6 +6,7 @@ require 'jwt'
 require 'base64'
 require 'uri'
 
+require_relative 'keycloak/oidc_configuration'
 require_relative 'keycloak/exceptions'
 require_relative 'keycloak/public_key'
 require_relative 'keycloak/version'
@@ -97,20 +98,6 @@ module Keycloak
     end
 
     request.call
-  end
-
-  def self.openid_configuration
-    RestClient.proxy = Keycloak.proxy unless empty?(Keycloak.proxy)
-    config_url = "#{@auth_server_url}/realms/#{@realm}/.well-known/openid-configuration"
-    request = lambda do
-      RestClient.get config_url
-    end
-    response = Keycloak::Client.exec_request request
-    if response.code == 200
-      Keycloak.oidc_configuration = JSON response.body
-    else
-      response.return!
-    end
   end
 
   def self.rescue_response(response)
