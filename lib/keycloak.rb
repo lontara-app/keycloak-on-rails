@@ -151,13 +151,18 @@ module Keycloak
     end
 
     def self.get_token_by_client_credentials(client_id = '', secret = '')
+      if Keycloak.access_type == 'public'
+        raise Keycloak::MethodNotSupported.new('Method not allowed for Public Access Type',
+                                               :not_supported)
+      end
+      
       setup_module
 
       client_id = @client_id if isempty?(client_id)
       secret = @secret if isempty?(secret)
 
       payload = { 'client_id' => client_id,
-                  # 'client_secret' => secret,
+                  'client_secret' => secret,
                   'grant_type' => 'client_credentials' }
 
       mount_request_token(payload)
