@@ -5,6 +5,10 @@ require_relative 'client'
 require_relative 'exceptions'
 require_relative 'generic_request'
 
+def empty?(value)
+  value.respond_to?(:empty?) ? !!value.empty? : !value
+end
+
 module Keycloak
   module Internal
     # include Keycloak::Admin
@@ -372,3 +376,5 @@ module Keycloak
     end
   end
 end
+
+puts Keycloak::Internal.get_users

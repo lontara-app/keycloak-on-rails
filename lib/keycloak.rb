@@ -1,27 +1,21 @@
 # frozen_string_literal: true
 
-require 'keycloak/admin'
-require 'keycloak/client'
-require 'keycloak/exceptions'
-require 'keycloak/generic_request'
-require 'keycloak/internal'
-require 'keycloak/oidc_configuration'
-require 'keycloak/public_key'
-require 'keycloak/rescue_response'
-require 'keycloak/version'
-require 'rest-client'
+require_relative 'keycloak/admin'
+require_relative 'keycloak/client'
+require_relative 'keycloak/exceptions'
+require_relative 'keycloak/generic_request'
+require_relative 'keycloak/internal'
+require_relative 'keycloak/oidc_configuration'
+require_relative 'keycloak/public_key'
+require_relative 'keycloak/rescue'
+require_relative 'keycloak/version'
+require_relative 'rest-client'
 require 'json'
 require 'jwt'
 require 'base64'
 require 'uri'
 
-def empty?(value)
-  value.respond_to?(:empty?) ? !!value.empty? : !value
-end
-
 module Keycloak
-  include Client
-
   OLD_KEYCLOAK_JSON_FILE = 'keycloak.json'
   KEYCLOAK_JSON_FILE = 'config/keycloak.json'
 

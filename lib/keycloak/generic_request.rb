@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 require_relative 'client'
-require_relative 'rescue_response'
+require_relative 'rescue'
 
 module Keycloak
   def self.generic_request(access_token, uri, query_parameters, body_parameter, method)
@@ -20,7 +20,7 @@ module Keycloak
     when 'GET'
       request = lambda do
         RestClient.get(final_url, header) do |response, _request, _result|
-          rescue_response(response)
+          Keycloak::Rescue.rescue_response(response)
         end
       end
     when 'POST', 'PUT'
@@ -30,11 +30,11 @@ module Keycloak
         case method.upcase
         when 'POST'
           RestClient.post(final_url, parameters, header) do |response, _request, _result|
-            rescue_response(response)
+            Keycloak::Rescue.rescue_response(response)
           end
         else
           RestClient.put(final_url, parameters, header) do |response, _request, _result|
-            rescue_response(response)
+            Keycloak::Rescue.rescue_response(response)
           end
         end
       end
@@ -45,11 +45,11 @@ module Keycloak
           parameters = JSON.generate body_parameter
           RestClient::Request.execute(method: :delete, url: final_url,
                                       payload: parameters, headers: header) do |response, _request, _result|
-            rescue_response(response)
+            Keycloak::Rescue.rescue_response(response)
           end
         else
           RestClient.delete(final_url, header) do |response, _request, _result|
-            rescue_response(response)
+            Keycloak::Rescue.rescue_response(response)
           end
         end
       end
