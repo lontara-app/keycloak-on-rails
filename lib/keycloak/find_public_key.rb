@@ -3,9 +3,7 @@ module Keycloak
     url = "#{auth_server_url}/realms/#{realm_id}"
 
     RestClient.get(url) do |response, _request, _result|
-      return Keycloak.rescue_response(response) if response.code == 200
-
-      return nil
+      JSON.parse(response) if response.code == 200
     end
   end
 end
