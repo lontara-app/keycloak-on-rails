@@ -41,7 +41,7 @@ module Keycloak
   end
 
   def self.public_key
-    response = Keycloak.find_public_key(Keycloak.auth_server_url, Keycloak.realm)
+    response = find_public_key(auth_server_url, realm)
 
     OpenSSL::PKey::RSA.new("-----BEGIN PUBLIC KEY-----\n #{response['public_key']} \n-----END PUBLIC KEY-----\n")
   end
