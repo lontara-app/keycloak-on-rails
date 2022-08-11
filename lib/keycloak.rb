@@ -296,10 +296,12 @@ module Keycloak
 
     def self.has_role?(user_role, access_token = '', client_id = '', secret = '', introspection_endpoint = '')
       verify_setup
+      return { message: 'User not logged in or Token not provided' } if token.blank? && access_token.blank?
 
       client_id = @client_id if isempty?(client_id)
       secret = @secret if isempty?(secret)
       introspection_endpoint = @configuration['introspection_endpoint'] if isempty?(introspection_endpoint)
+      access_token = token['access_token'] if access_token.empty?
 
       case Keycloak.access_type
       when 'confidential'
@@ -309,10 +311,7 @@ module Keycloak
           decoded_token.select { |t| t['resource_access'] }.first['resource_access']['account']['roles'].include?(user_role)
         end
       when 'public'
-        # Must provided because there is no way to check if user logged in or not.
         decoded_token = decoded_access_token(access_token)
-        return { message: decoded_token[:message], status: 403 } if decoded_token[:message].present?
-
         decoded_token.select { |t| t['resource_access'] }.first['resource_access']['account']['roles'].include?(user_role)
       end
     end
@@ -338,11 +337,11 @@ module Keycloak
 
     def self.get_attribute(attribute_name, access_token = '')
       verify_setup
+      return { message: 'User not logged in or Token not provided' } if token.blank? && access_token.blank?
 
-      # Must provided because there is no way to check if user logged in or not.
+      access_token = token['access_token'] if access_token.empty?
+
       decoded_token = decoded_access_token(access_token)
-      return { message: decoded_token[:message], status: 403 } if decoded_token[:message].present?
-
       { attribute_name => decoded_token.select { |t| t[attribute_name] }.first[attribute_name] }
     end
 
