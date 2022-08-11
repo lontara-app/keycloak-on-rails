@@ -147,7 +147,7 @@ module Keycloak
 
       client_id = @client_id if isempty?(client_id)
       secret = @secret if isempty?(secret)
-      refresh_token = token['refresh_token'] if refresh_token.empty?
+      refresh_token = JSON.parse(token)['refresh_token'] if refresh_token.empty?
 
       case Keycloak.access_type
       when 'public'
