@@ -275,8 +275,10 @@ module Keycloak
           case response.code
           when 200
             response.body
+          when 401
+            { message: 'User not logged in', status: 401 }
           else
-            {}
+            response.return!
           end
         end
       end
@@ -304,6 +306,8 @@ module Keycloak
           decoded_token.select { |t| t['resource_access'] }.first['resource_access']['account']['roles'].include?(user_role)
         end
       when 'public'
+        return { message: 'User not logged in or Token not provided' } if Keycloak.proc_cookie_token.nil?
+
         decoded_token = decoded_access_token(access_token)
         decoded_token.select { |t| t['resource_access'] }.first['resource_access']['account']['roles'].include?(user_role)
       end
