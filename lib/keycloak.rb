@@ -350,6 +350,7 @@ module Keycloak
 
       token = Keycloak.proc_cookie_token.call
       puts token.present?
+      puts token
       token.present? ? token : {}
     end
 
