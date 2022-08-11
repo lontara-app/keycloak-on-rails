@@ -349,8 +349,7 @@ module Keycloak
     def self.token
       raise Keycloak::ProcCookieTokenNotDefined if Keycloak.proc_cookie_token.nil?
 
-      token = Keycloak.proc_cookie_token.call.to_json
-      token.present? ? JSON.parse(token) : {}
+      Keycloak.proc_cookie_token.present? ? Keycloak.proc_cookie_token : {}
     end
 
     def self.external_attributes
@@ -370,7 +369,7 @@ module Keycloak
     def self.decoded_refresh_token(refresh_token = '')
       return { message: 'User not logged in or Token not provided' } if token.blank? && access_token.blank?
 
-      refresh_token = token['access_token'] if refresh_token.empty?
+      refresh_token = token['refresh_token'] if refresh_token.empty?
       JWT.decode refresh_token, @public_key, true, { algorithm: 'RS256' }
     end
 
