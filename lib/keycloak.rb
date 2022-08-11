@@ -301,23 +301,13 @@ module Keycloak
       case Keycloak.access_type
       when 'confidential'
         if !Keycloak.validate_token_when_call_has_role || user_signed_in?(access_token, client_id, secret, introspection_endpoint)
-          dt = decoded_access_token(access_token)[0]
-          dt = dt['resource_access'][client_id]
-          unless dt.nil?
-            dt['roles'].each do |role|
-              return true if role.to_s == user_role.to_s
-            end
-          end
+          decoded_token = decoded_access_token(access_token)
+          decoded_token.select { |t| t['resource_access'] }.first['resource_access']['account']['roles'].include?(user_role)
         end
       when 'public'
         if !Keycloak.validate_token_when_call_has_role
-          dt = decoded_access_token(access_token)[0]
-          dt = dt['resource_access'][client_id]
-          unless dt.nil?
-            dt['roles'].each do |role|
-              return true if role.to_s == user_role.to_s
-            end
-          end
+          decoded_token = decoded_access_token(access_token)
+          decoded_token.select { |t| t['resource_access'] }.first['resource_access']['account']['roles'].include?(user_role)
         end
       end
 
