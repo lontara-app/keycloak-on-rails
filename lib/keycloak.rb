@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require 'keycloak/version'
+require 'keycloak/public_key'
 require 'rest-client'
 require 'json'
 require 'jwt'
