@@ -348,6 +348,7 @@ module Keycloak
 
     def self.token
       raise Keycloak::ProcCookieTokenNotDefined if Keycloak.proc_cookie_token.nil?
+      return { message: 'User not logged in or Token not provided' } if Keycloak.proc_cookie_token.blank?
 
       JSON Keycloak.proc_cookie_token.call
     end
