@@ -344,8 +344,9 @@ module Keycloak
       # if Keycloak.access_type == 'public'
       #   raise Keycloak::MethodNotSupported.new('Method not allowed for Public Access Type', :not_supported)
       # end
-
       verify_setup
+
+      return false if token.blank? && access_token.blank?
 
       client_id = @client_id if isempty?(client_id)
       secret = @secret if isempty?(secret)
@@ -354,7 +355,8 @@ module Keycloak
       case Keycloak.access_type
       when 'public'
         access_token = JSON.parse(token)['access_token'] if access_token.empty?
-        token_expired?(access_token) && token.present?
+        token_expired?(access_token)
+
       when 'confidential'
         begin
           JSON(get_token_introspection(access_token, client_id, secret, introspection_endpoint))['active'] == true
