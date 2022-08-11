@@ -309,7 +309,7 @@ module Keycloak
       when 'public'
         # Must provided because there is no way to check if user logged in or not.
         decoded_token = decoded_access_token(access_token)
-        return decoded_token[:message] if decoded_token[:message].any?
+        return { message: decoded_token[:message], status: 403 } if decoded_token[:message].present?
 
         decoded_token.select { |t| t['resource_access'] }.first['resource_access']['account']['roles'].include?(user_role)
       end
