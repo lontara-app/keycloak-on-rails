@@ -367,7 +367,7 @@ module Keycloak
     end
 
     def self.decoded_refresh_token(refresh_token = '')
-      return { message: 'User not logged in or Token not provided' } if token.blank? && access_token.blank?
+      return { message: 'User not logged in or Token not provided' } if token.blank? && refresh_token.blank?
 
       refresh_token = token['refresh_token'] if refresh_token.empty?
       JWT.decode refresh_token, @public_key, true, { algorithm: 'RS256' }
