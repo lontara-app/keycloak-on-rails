@@ -403,14 +403,15 @@ module Keycloak
 
     KEYCLOACK_CONTROLLER_DEFAULT = 'session'
 
-    def self.token_expired?
-      decoded_token = decoded_access_token
-
-      if decoded_token['message'].blank?
-        decoded_access_token.select { |t| t['exp'] }.first['exp'] < Time.now.to_i
-      else
-        decoded_token
+    def self.token_expired?(access_token = '')
+      if token.blank? && access_token.blank?
+        return JSON.parse({ message: 'User not logged in or Token not provided' }.to_json)
       end
+
+      access_token = JSON.parse(token)['access_token'] if access_token.empty?
+      decoded_token = decoded_access_token(access_token)
+
+      decoded_token.select { |t| t['exp'] }.first['exp'] < Time.now.to_i
     end
 
     def self.get_installation
