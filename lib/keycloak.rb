@@ -405,7 +405,7 @@ module Keycloak
       end
 
       refresh_token = JSON.parse(token)['refresh_token'] if refresh_token.empty?
-      JWT.decode refresh_token, @public_key, true, { algorithm: 'HS256' }
+      JWT.decode refresh_token, '', false, { algorithm: 'HS256' }
     end
 
     KEYCLOACK_CONTROLLER_DEFAULT = 'session'
