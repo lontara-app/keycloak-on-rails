@@ -6,6 +6,7 @@ require 'json'
 require 'jwt'
 require 'base64'
 require 'uri'
+require 'rails'
 
 def isempty?(value)
   value.respond_to?(:empty?) ? !!value.empty? : !value
@@ -349,7 +350,7 @@ module Keycloak
       raise Keycloak::ProcCookieTokenNotDefined if Keycloak.proc_cookie_token.nil?
 
       token = Keycloak.proc_cookie_token.call
-      token.present? ? token : {}
+      token.present? ? JSON.parse(token.to_json) : JSON.parse({}.to_json)
     end
 
     def self.external_attributes
@@ -362,7 +363,6 @@ module Keycloak
       return { message: 'User not logged in or Token not provided' } if token.blank? && access_token.blank?
 
       access_token = token['access_token'] if access_token.empty?
-      print token[:access_token]
       JWT.decode access_token, @public_key, true, { algorithm: 'RS256' }
     end
 
