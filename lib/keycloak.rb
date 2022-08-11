@@ -348,9 +348,6 @@ module Keycloak
     end
 
     def self.user_signed_in?(access_token = '', client_id = '', secret = '', introspection_endpoint = '')
-      # if Keycloak.access_type == 'public'
-      #   raise Keycloak::MethodNotSupported.new('Method not allowed for Public Access Type', :not_supported)
-      # end
       verify_setup
 
       return false if token.blank?
@@ -362,7 +359,11 @@ module Keycloak
 
       case Keycloak.access_type
       when 'public'
-        !token_expired?(access_token)
+        begin
+          !token_expired?(access_token)
+        rescue JWT::ExpiredSignature
+          false
+        end
       when 'confidential'
         begin
           JSON(get_token_introspection(access_token, client_id, secret, introspection_endpoint))['active'] == true
