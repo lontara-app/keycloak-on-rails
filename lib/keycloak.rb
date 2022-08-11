@@ -123,7 +123,10 @@ module Keycloak
 
     def self.get_userinfo_issuer(access_token = '', userinfo_endpoint = '')
       verify_setup
-      return { message: 'User not logged in or Token not provided' } if token.blank? && access_token.blank?
+      
+      if token.blank? && access_token.blank?
+        return JSON.parse({ message: 'User not logged in or Token not provided' }.to_json)
+      end
 
       userinfo_endpoint = @configuration['userinfo_endpoint'] if isempty?(userinfo_endpoint)
 
@@ -167,8 +170,7 @@ module Keycloak
 
     def self.get_token_by_client_credentials(client_id = '', secret = '')
       if Keycloak.access_type == 'public'
-        raise Keycloak::MethodNotSupported.new('Method not allowed for Public Access Type',
-                                               :not_supported)
+        raise Keycloak::MethodNotSupported.new('Method not allowed for Public Access Type', :not_supported)
       end
 
       setup_module
@@ -185,8 +187,7 @@ module Keycloak
 
     def self.get_token_introspection(token = '', client_id = '', secret = '', introspection_endpoint = '')
       if Keycloak.access_type == 'public'
-        raise Keycloak::MethodNotSupported.new('Method not allowed for Public Access Type',
-                                               :not_supported)
+        raise Keycloak::MethodNotSupported.new('Method not allowed for Public Access Type', :not_supported)
       end
 
       verify_setup
@@ -280,7 +281,10 @@ module Keycloak
 
     def self.get_userinfo(access_token = '', userinfo_endpoint = '')
       verify_setup
-      return { message: 'User not logged in or Token not provided' } if token.blank? && access_token.blank?
+
+      if token.blank? && access_token.blank?
+        return JSON.parse({ message: 'User not logged in or Token not provided' }.to_json)
+      end
 
       access_token = JSON.parse(token)['access_token'] if access_token.empty?
       userinfo_endpoint = @configuration['userinfo_endpoint'] if isempty?(userinfo_endpoint)
@@ -313,7 +317,10 @@ module Keycloak
 
     def self.has_role?(user_role, access_token = '', client_id = '', secret = '', introspection_endpoint = '')
       verify_setup
-      return { message: 'User not logged in or Token not provided' } if token.blank? && access_token.blank?
+
+      if token.blank? && access_token.blank?
+        return JSON.parse({ message: 'User not logged in or Token not provided' }.to_json)
+      end
 
       client_id = @client_id if isempty?(client_id)
       secret = @secret if isempty?(secret)
@@ -325,18 +332,21 @@ module Keycloak
         # Logged in user always have token. So no need to check if token is any.
         if user_signed_in?(access_token, client_id, secret, introspection_endpoint)
           decoded_token = decoded_access_token(access_token)
-          decoded_token.select { |t| t['resource_access'] }.first['resource_access']['account']['roles'].include?(user_role)
+          decoded_token.select do |t|
+            t['resource_access']
+          end.first['resource_access']['account']['roles'].include?(user_role)
         end
       when 'public'
         decoded_token = decoded_access_token(access_token)
-        decoded_token.select { |t| t['resource_access'] }.first['resource_access']['account']['roles'].include?(user_role)
+        decoded_token.select do |t|
+          t['resource_access']
+        end.first['resource_access']['account']['roles'].include?(user_role)
       end
     end
 
     def self.user_signed_in?(access_token = '', client_id = '', secret = '', introspection_endpoint = '')
       if Keycloak.access_type == 'public'
-        raise Keycloak::MethodNotSupported.new('Method not allowed for Public Access Type',
-                                               :not_supported)
+        raise Keycloak::MethodNotSupported.new('Method not allowed for Public Access Type', :not_supported)
       end
 
       verify_setup
@@ -346,7 +356,7 @@ module Keycloak
       introspection_endpoint = @configuration['introspection_endpoint'] if isempty?(introspection_endpoint)
 
       begin
-        JSON(get_token_introspection(access_token, client_id, secret, introspection_endpoint))['active'] === true
+        JSON(get_token_introspection(access_token, client_id, secret, introspection_endpoint))['active'] == true
       rescue StandardError => e
         e.class < Keycloak::KeycloakException ? raise(e) : false
       end
@@ -354,7 +364,10 @@ module Keycloak
 
     def self.get_attribute(attribute_name, access_token = '')
       verify_setup
-      return { message: 'User not logged in or Token not provided' } if token.blank? && access_token.blank?
+      
+      if token.blank? && access_token.blank?
+        return JSON.parse({ message: 'User not logged in or Token not provided' }.to_json)
+      end
 
       access_token = JSON.parse(token)['access_token'] if access_token.empty?
 
@@ -375,18 +388,20 @@ module Keycloak
     end
 
     def self.decoded_access_token(access_token = '')
-      return { message: 'User not logged in or Token not provided' } if token.blank? && access_token.blank?
+      if token.blank? && access_token.blank?
+        return JSON.parse({ message: 'User not logged in or Token not provided' }.to_json)
+      end
 
       access_token = JSON.parse(token)['access_token'] if access_token.empty?
-      puts access_token
       JWT.decode access_token, @public_key, true, { algorithm: 'RS256' }
     end
 
     def self.decoded_refresh_token(refresh_token = '')
-      return { message: 'User not logged in or Token not provided' } if token.blank? && refresh_token.blank?
+      if token.blank? && refresh_token.blank?
+        return JSON.parse({ message: 'User not logged in or Token not provided' }.to_json)
+      end
 
       refresh_token = JSON.parse(token)['refresh_token'] if refresh_token.empty?
-      puts refresh_token
       JWT.decode refresh_token, @public_key, true, { algorithm: 'RS256' }
     end
 
@@ -954,9 +969,19 @@ module Keycloak
       client_id = Keycloak::Client.client_id if isempty?(client_id)
       secret = Keycloak::Client.secret if isempty?(secret)
 
-      payload = { 'client_id' => client_id,
-                  'client_secret' => secret,
-                  'grant_type' => 'client_credentials' }
+      case Keycloak.access_type
+      when 'public'
+        payload = {
+          'client_id' => client_id,
+          'grant_type' => 'client_credentials'
+        }
+      when 'confidential'
+        payload = {
+          'client_id' => client_id,
+          'client_secret' => secret,
+          'grant_type' => 'client_credentials'
+        }
+      end
 
       header = { 'Content-Type' => 'application/x-www-form-urlencoded' }
 
@@ -976,9 +1001,20 @@ module Keycloak
       Keycloak::Client.exec_request request
     ensure
       if tk
-        payload = { 'client_id' => client_id,
-                    'client_secret' => secret,
-                    'refresh_token' => tk['refresh_token'] }
+
+        case Keycloak.access_type
+        when 'public'
+          payload = {
+            'client_id' => client_id,
+            'refresh_token' => tk['refresh_token']
+          }
+        when 'confidential'
+          payload = {
+            'client_id' => client_id,
+            'client_secret' => secret,
+            'refresh_token' => tk['refresh_token']
+          }
+        end
 
         header = { 'Content-Type' => 'application/x-www-form-urlencoded' }
         request = lambda do
