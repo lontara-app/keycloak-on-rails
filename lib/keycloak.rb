@@ -294,7 +294,7 @@ module Keycloak
     end
 
     def self.user_signed_in?(access_token = '', client_id = '', secret = '', introspection_endpoint = '')
-      raise MethodNotSupported::KeycloakException => 'Method not supported on Public Access Type' if Keycloak.access_type == 'public'
+      raise Keycloak::MethodNotSupported => 'Method not supported on Public Access Type' if Keycloak.access_type == 'public'
 
       verify_setup
 
