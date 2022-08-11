@@ -40,16 +40,16 @@ module Keycloak
     @installation_file = file || KEYCLOAK_JSON_FILE
   end
 
-  def self.public_key
-    response = find_public_key(auth_server_url, realm)
-
-    OpenSSL::PKey::RSA.new("-----BEGIN PUBLIC KEY-----\n #{response['public_key']} \n-----END PUBLIC KEY-----\n")
-  end
-
   module Client
     class << self
       attr_accessor :realm, :auth_server_url
       attr_reader :client_id, :secret, :configuration, :access_type
+    end
+
+    def self.public_key
+      response = Keycloak.find_public_key(auth_server_url, realm)
+  
+      OpenSSL::PKey::RSA.new("-----BEGIN PUBLIC KEY-----\n #{response['public_key']} \n-----END PUBLIC KEY-----\n")
     end
 
     def self.get_token(user, password, client_id = '', secret = '')
@@ -402,7 +402,7 @@ module Keycloak
       end
 
       access_token = JSON.parse(token)['access_token'] if access_token.empty?
-      JWT.decode access_token, Keycloak.public_key, true, { algorithm: 'RS256' }
+      JWT.decode access_token, Keycloak::Client.public_key, true, { algorithm: 'RS256' }
     end
 
     def self.decoded_refresh_token(refresh_token = '')
@@ -503,7 +503,7 @@ module Keycloak
     def self.decoded_id_token(id_token = '')
       tk = token
       id_token = tk['id_token'] if id_token.empty?
-      @decoded_id_token = JWT.decode id_token, Keycloak.public_key, true, { algorithm: 'RS256' } if id_token
+      @decoded_id_token = JWT.decode id_token, Keycloak::Client.public_key, true, { algorithm: 'RS256' } if id_token
     end
   end
 

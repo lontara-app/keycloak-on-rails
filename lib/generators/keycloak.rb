@@ -14,3 +14,5 @@ Keycloak.validate_token_when_call_has_role = false
 Keycloak.secret = ''
 # resource (client_id, only if the installation file is not present)
 Keycloak.resource = ''
+# Set the access type of the client.
+Keycloak.access_type = 'public' # public, confidential, bearer-only (On Going)
