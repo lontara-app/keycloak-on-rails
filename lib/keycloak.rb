@@ -154,7 +154,7 @@ module Keycloak
     end
 
     def self.get_token_introspection(token = '', client_id = '', secret = '', introspection_endpoint = '')
-      raise 'Access Type not Allowed for public' if Keycloak.access_type == 'public' && return
+      raise Keycloak::MethodNotSupported.new('Method not allowed for Public Access Type', :not_supported) if Keycloak.access_type == 'public'
 
       verify_setup
 
