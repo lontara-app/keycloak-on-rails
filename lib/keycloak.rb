@@ -155,7 +155,7 @@ module Keycloak
 
     def self.get_token_introspection(token = '', client_id = '', secret = '', introspection_endpoint = '')
       raise 'Access Type not Allowed for public' if Keycloak.access_type == 'public' && return
-      
+
       verify_setup
 
       client_id = @client_id if isempty?(client_id)
@@ -196,20 +196,27 @@ module Keycloak
     end
 
     def self.logout(redirect_uri = '', refresh_token = '', client_id = '', secret = '', end_session_endpoint = '')
-      # raise 'Method not allowed for Public Access Type.' if Keycloak.access_type == 'public'
-
       verify_setup
 
       if token || !refresh_token.empty?
 
         refresh_token = token['refresh_token'] if refresh_token.empty?
         client_id = @client_id if isempty?(client_id)
-        # secret = @secret if isempty?(secret)
+        secret = @secret if isempty?(secret)
         end_session_endpoint = @configuration['end_session_endpoint'] if isempty?(end_session_endpoint)
 
-        payload = { 'client_id' => client_id,
-                    #'client_secret' => secret,
-                    'refresh_token' => refresh_token }
+        if Keycloak.access_type == 'confidential'
+          payload = {
+            'client_id' => client_id,
+            'client_secret' => secret,
+            'refresh_token' => refresh_token
+          }
+        elsif Keycloak.access_type == 'public'
+          payload = {
+            'client_id' => client_id,
+            'refresh_token' => refresh_token
+          }
+        end
 
         header = { 'Content-Type' => 'application/x-www-form-urlencoded' }
 
@@ -888,13 +895,13 @@ module Keycloak
       secret = Keycloak::Client.secret if isempty?(secret)
 
       roles = JSON get_client_user_roles(user_id, client_id, secret)
-      if !roles.nil?
+      unless roles.nil?
         roles.each do |role|
           return true if role['name'].to_s == user_role.to_s
         end
-      #   false
-      # else
-      #   false
+        #   false
+        # else
+        #   false
       end
       false
     end
