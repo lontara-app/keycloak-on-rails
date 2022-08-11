@@ -233,7 +233,7 @@ module Keycloak
 
       if token || !refresh_token.empty?
 
-        refresh_token = token['refresh_token'] if refresh_token.empty?
+        refresh_token = JSON.parse(token)['refresh_token'] if refresh_token.empty?
         client_id = @client_id if isempty?(client_id)
         secret = @secret if isempty?(secret)
         end_session_endpoint = @configuration['end_session_endpoint'] if isempty?(end_session_endpoint)
@@ -282,7 +282,7 @@ module Keycloak
       verify_setup
       return { message: 'User not logged in or Token not provided' } if token.blank? && access_token.blank?
 
-      access_token = token['access_token'] if access_token.empty?
+      access_token = JSON.parse(token)['access_token'] if access_token.empty?
       userinfo_endpoint = @configuration['userinfo_endpoint'] if isempty?(userinfo_endpoint)
 
       payload = { 'access_token' => access_token }
@@ -318,7 +318,7 @@ module Keycloak
       client_id = @client_id if isempty?(client_id)
       secret = @secret if isempty?(secret)
       introspection_endpoint = @configuration['introspection_endpoint'] if isempty?(introspection_endpoint)
-      access_token = token['access_token'] if access_token.empty?
+      access_token = JSON.parse(token)['access_token'] if access_token.empty?
 
       case Keycloak.access_type
       when 'confidential'
@@ -356,7 +356,7 @@ module Keycloak
       verify_setup
       return { message: 'User not logged in or Token not provided' } if token.blank? && access_token.blank?
 
-      access_token = token['access_token'] if access_token.empty?
+      access_token = JSON.parse(token)['access_token'] if access_token.empty?
 
       decoded_token = decoded_access_token(access_token)
       { attribute_name => decoded_token.select { |t| t[attribute_name] }.first[attribute_name] }
