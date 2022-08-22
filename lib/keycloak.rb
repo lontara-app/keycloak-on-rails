@@ -406,7 +406,7 @@ module Keycloak
       "#{@auth_server_url}/realms/#{@realm}/account"
     end
 
-    def self.has_role?(user_role, access_token = '', client_id = '', secret = '', introspection_endpoint = '')
+    def self.has_resource_role?(user_role, access_token = '', client_id = '', secret = '', introspection_endpoint = '')
       verify_setup
 
       if token.blank? && access_token.blank?
@@ -432,6 +432,35 @@ module Keycloak
         decoded_token.select do |t|
           t['resource_access']
         end.first['resource_access']['account']['roles'].include?(user_role)
+      end
+    end
+
+    def self.has_realm_role?(user_role, access_token = '', client_id = '', secret = '', introspection_endpoint = '')
+      verify_setup
+
+      if token.blank? && access_token.blank?
+        return JSON.parse({ message: 'User not logged in or Token not provided' }.to_json)
+      end
+
+      client_id = @client_id if empty?(client_id)
+      secret = @secret if empty?(secret)
+      introspection_endpoint = Keycloak.oidc_configuration['introspection_endpoint'] if empty?(introspection_endpoint)
+      access_token = JSON.parse(token)['access_token'] if access_token.empty?
+
+      case Keycloak.access_type
+      when 'confidential'
+        # Logged in user always have token. So no need to check if token is any.
+        if user_signed_in?(access_token, client_id, secret, introspection_endpoint)
+          decoded_token = decoded_access_token(access_token)
+          decoded_token.select do |t|
+            t['realm_access']
+          end.first['realm_access']['roles'].include?(user_role)
+        end
+      when 'public'
+        decoded_token = decoded_access_token(access_token)
+        decoded_token.select do |t|
+          t['realm_access']
+        end.first['realm_access']['roles'].include?(user_role)
       end
     end
 
